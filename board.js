@@ -11,14 +11,14 @@ class Board {
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
         ];
         this._pieces = [
-            new Piece('G', 4, 2, [['O','G','G'],[' ','O',' ']]),
-            new Piece('R', 4, 2, [['O',' '],['R',' '],['O','R']]),
-            new Piece('Y', 5, 3, [[' ','Y',' '],['O','Y',' '],[' ','O','O']]),
-            new Piece('B', 4, 1, [['B','B','O','B']]),
-            new Piece('Y', 3, 1, [['Y','Y','O']]),
-            new Piece('B', 5, 2, [['B','B','B'],[' ','O','O']]),
-            new Piece('R', 4, 1, [[' ','R'],['R','O'],['R',' ']]),
-            new Piece('G', 3, 2, [[' ','G'],['O','O']])
+            new Piece('G', 4, 2, [['GO','G','G'],[' ','GO',' ']]),
+            new Piece('R', 4, 2, [['RO',' '],['R',' '],['RO','R']]),
+            new Piece('Y', 5, 3, [[' ','Y',' '],['YO','Y',' '],[' ','YO','YO']]),
+            new Piece('B', 4, 1, [['B','B','BO','B']]),
+            new Piece('Y', 3, 1, [['Y','Y','YO']]),
+            new Piece('B', 5, 2, [['B','B','B'],[' ','BO','BO']]),
+            new Piece('R', 4, 1, [[' ','R'],['R','RO'],['R',' ']]),
+            new Piece('G', 3, 2, [[' ','G'],['GO','GO']])
         ];
 
         this._putPins(this._pins, this._state);
@@ -32,6 +32,58 @@ class Board {
 
     print() {
         console.table(this._state);
+    }
+
+    solve() {
+        let freePins = this._getFreePins();
+        // for each free pin try to put same colored pieces
+        // if there is only 1 possible position pieces on a pin -> put it
+        // after each piece put -> re-evaluate and save all possible positions on pins
+
+        // start with the pin with least possible positions
+        // put piece on first, re-evaluate
+        // continue until not possible move or win
+    }
+
+    _getFreePins() {
+        let result = [];
+        for (let i = 0; i < this._state.length; i++) {
+            for (let j = 0; j < this._state[i].length; j++) {
+                if (this._isContentPin(this._state[i][j])) {
+                    result.push([this._state[i][j], i, j]);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    _canPutOnPosition(content, x, y) {
+        if (this._isPositionEmpty(x, y) || content === ' ') {
+            return true;
+        }
+
+        if (this._isPositionPin(x, y) && this._canPutOnPin(content, x, y)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    _isPositionEmpty(x, y) {
+        return this._state[x][y] === ' ';
+    }
+
+    _isPositionPin(x, y) {
+        return this._state[x][y] !== ' ' && this._state[x][y].length === 1;
+    }
+
+    _isContentPin(content) {
+        return content !== ' ' && content.length === 1;
+    }
+
+    _canPutOnPin(content, x, y) {
+        return content.endsWith('O') && content[0] === this._state[x][y];
     }
 
     _putPins(pins, state) {

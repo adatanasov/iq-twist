@@ -10,3 +10,4 @@ let board1 = new Board(
 
 console.log(board1.pieces);    
 board1.print();
+console.log(board1._getFreePins());
