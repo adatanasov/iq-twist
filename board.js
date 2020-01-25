@@ -1,4 +1,5 @@
 import Piece from "./piece.js";
+import Pin from "./pin.js";
 
 class Board {
     constructor(pins, initialPieces) {
@@ -36,7 +37,15 @@ class Board {
 
     solve() {
         let freePins = this._getFreePins();
-        // for each free pin try to put same colored pieces
+        for (let i = 0; i < freePins.length; i++) {
+            const pin = freePins[i];
+            const availablePieces = this._pieces.filter(p => p.color == pin.color);
+            for (let pi = 0; pi < availablePieces.length; pi++) {
+                const piece = availablePieces[pi];
+                let piecePinResult = this._tryPieceOnPin(piece, pin);
+            }
+        }
+        // +for each free pin try to put same colored pieces
         // if there is only 1 possible position pieces on a pin -> put it
         // after each piece put -> re-evaluate and save all possible positions on pins
 
@@ -45,12 +54,68 @@ class Board {
         // continue until not possible move or win
     }
 
+    _tryPieceOnPin(piece, pin) {
+        let currentPlan = piece.plan;   
+        result = [];     
+        for (let po = 0; po < 8; po++) {            
+            for (let i = 0; i < currentPlan.length; i++) {
+                for (let j = 0; j < currentPlan[i].length; j++) {
+                    const element = currentPlan[i][j];
+                    if (element.endsWith('O') && this._canFit(currentPlan, i, j, pin)) {
+                        result.push([currentPlan, i, j, pin]);
+                    }
+                }
+            }
+            
+            // rotate, if po === 3, turn
+        }
+    }
+
+    _canFit(plan, x, y, pin) {
+        const neededOnLeft = y;
+        const neededOnTop = x;
+        const neededOnRight = plan[0].length - 1 - y;
+        const neededOnBottom = plan.length - 1 - x;
+
+        const minX = 0
+        const maxX = 3;
+        const minY = 0;
+        const maxY = 7;
+
+        if (pin.y - neededOnLeft < minY) {
+            return false; // can't fit on the left
+        }
+
+        if (pin.x - neededOnTop < minX) {
+            return false; // can't fit on the top
+        }
+
+        if (pin.y + neededOnRight > maxY) {
+            return false; // can't fit on the right
+        }
+
+        if (pin.x + neededOnBottom > maxX) {
+            return false; // can't fit on the bottom
+        }
+        
+        for (let i = 0; i < plan.length; i++) {
+            for (let j = 0; j < plan[i].length; j++) {
+                const content = plan[i][j];
+                if (!this._canPutOnPosition(content, pin.x - x + i, pin.y - y + j)) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
     _getFreePins() {
         let result = [];
         for (let i = 0; i < this._state.length; i++) {
             for (let j = 0; j < this._state[i].length; j++) {
                 if (this._isContentPin(this._state[i][j])) {
-                    result.push([this._state[i][j], i, j]);
+                    result.push(new Pin(this._state[i][j], i, j));
                 }
             }
         }

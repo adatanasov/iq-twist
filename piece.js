@@ -18,6 +18,10 @@ class Piece {
     set position(newPosition) {
         this._position = newPosition;
     }
+
+    get plan() {
+        return this._plan;
+    }
 }
 
 export default Piece
