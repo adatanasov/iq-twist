@@ -1,7 +1,7 @@
-import Piece from "./piece.js";
-import Pin from "./pin.js";
+import { Pin } from "./pin.js";
+import { PinOption } from "./PinOption.js";
 
-class Board {
+export class Board {
     constructor(pins) {
         this._state = [
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -28,6 +28,38 @@ class Board {
         }
     }
 
+    putPinOption(pinOption) {
+        let plan = pinOption.plan;
+        let pin = pinOption.pin;
+        let x = pinOption.x;
+        let y = pinOption.y;
+
+        for (let i = 0; i < plan.length; i++) {
+            for (let j = 0; j < plan[i].length; j++) {
+                this._putOnBoard(plan[i][j], pin.x - x + i, pin.y - y + j);
+            }
+        }
+    }
+
+    _putOnBoard(content, x, y) {
+        if (this._isContentEmpty(content)) {
+            return;
+        }
+
+        if (this._isPositionEmpty(x, y)) {
+            let updatedContent = content.length === 1 ? content + content : content;
+            this._state[x][y] = updatedContent;
+            return;
+        }
+
+        if (this._isPositionPin(x, y) && this._canPutOnPin(content, x, y)) {
+            this._state[x][y] = content + this._state[x][y];
+            return;
+        }
+
+        console.error(`Can't put ${content} on position ${x},${y}`);
+    }
+
     getFreePins() {
         let result = [];
         for (let i = 0; i < this._state.length; i++) {
@@ -42,23 +74,96 @@ class Board {
     }
 
     tryPieceOnPin(piece, pin) {
-        let currentPlan = piece.plan;   
-        result = [];     
+        let currentPlan = piece.plan;  
+        if (piece.id === 'R42') {
+            console.log('tryPieceOnPin');
+            console.log(currentPlan);
+        } 
+        let result = [];     
         for (let po = 0; po < 8; po++) {            
             for (let i = 0; i < currentPlan.length; i++) {
                 for (let j = 0; j < currentPlan[i].length; j++) {
                     const element = currentPlan[i][j];
                     if (element.endsWith('O') && this._canFit(currentPlan, i, j, pin)) {
-                        result.push([currentPlan, i, j, pin]);
+                        let option = new PinOption(piece, currentPlan, i, j, pin)
+                        result.push(option);
                     }
                 }
             }
             
-            // rotate, if po === 3, turn
+            if (po !== 3) {
+                if (piece.id === 'R42') {
+                    console.log('before rotate ' + po);
+                    console.log(currentPlan);
+                }
+                let debug = piece.id === 'R42';
+                currentPlan = this._rotate(currentPlan, debug);
+                if (piece.id === 'R42') {
+                    console.log('after rotate ' + po);
+                    console.log(currentPlan);
+                }
+            } else {
+                if (currentPlan.length === 1 || currentPlan[0].length === 1) {
+                    break;
+                }
+                
+                currentPlan = this._flip(currentPlan);
+                if (piece.id === 'R42') {
+                    console.log('flip ' + po);
+                    console.log(currentPlan);
+                }
+            }
+
+            // if (piece.id === 'R42') {
+            //     console.log('po ' + po);
+            //     console.log(currentPlan);
+            // }
         }
+
+        return result;
+    }
+
+    _rotate(plan, debug = false) {
+        let result = [];
+        if (debug) {
+            console.log('debug rotate after initial result');
+            console.log(result);
+        }
+
+        for (let col = 0; col < plan[0].length; col++) {
+            result.push([]);
+        }
+
+        if (debug) {
+            console.log('debug rotate after initialize');
+            console.log(result);
+        }
+
+        for (let i = 0; i < plan.length; i++) {
+            for (let j = 0; j < plan[i].length; j++) {
+                result[j].unshift(plan[i][j]);
+                if (debug) {
+                    console.log('debug rotate');
+                    console.log(result);
+                }
+            }
+        }
+
+        return result;
+    }
+
+    _flip(plan) {
+        let result = [];
+
+        for (let i = 0; i < plan.length; i++) {
+            result[i] = plan[i].reverse();
+        }
+
+        return result;
     }
 
     _canFit(plan, x, y, pin) {
+        //console.log(plan, x, y, pin);
         const neededOnLeft = y;
         const neededOnTop = x;
         const neededOnRight = plan[0].length - 1 - y;
@@ -98,7 +203,7 @@ class Board {
     }
 
     _canPutOnPosition(content, x, y) {
-        if (this._isPositionEmpty(x, y) || content === ' ') {
+        if (this._isPositionEmpty(x, y) || this._isContentEmpty(content)) {
             return true;
         }
 
@@ -111,6 +216,10 @@ class Board {
 
     _isPositionEmpty(x, y) {
         return this._state[x][y] === ' ';
+    }
+
+    _isContentEmpty(content) {
+        return content === ' ';
     }
 
     _isPositionPin(x, y) {
@@ -156,5 +265,3 @@ class Board {
         }
     }
 }
-
-export default Board

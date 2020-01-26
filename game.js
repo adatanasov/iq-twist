@@ -1,10 +1,8 @@
-import Board from './board.js';
-import Piece from './piece.js';
-import Pin from './pin.js';
+import { Piece } from './piece.js';
 
-class Game {
+export class Game {
     constructor(board) {
-        this._board = board;
+        this.board = board;
         this._pieces = [
             new Piece('G', 4, 2, [['GO','G','G'],[' ','GO',' ']]),
             new Piece('R', 4, 2, [['RO',' '],['R',' '],['RO','R']]),
@@ -17,26 +15,25 @@ class Game {
         ];
     }
 
-    get board() {
-        return this._board;
-    }
-
     get pieces() {
         return this._pieces;
     }
 
-    removePieceById(id) {
-        this._pieces = this._pieces.filter(p => p.id !== id);
+    putPieceOnBoard(piece) {
+        this.board.putPiece(piece);
+        this._removePieceById(piece.id);
     }
 
     solve() {
-        let freePins = this._board.getFreePins();
-        for (let i = 0; i < freePins.length; i++) {
-            const pin = freePins[i];
-            const availablePieces = this._pieces.filter(p => p.color == pin.color);
-            for (let pi = 0; pi < availablePieces.length; pi++) {
-                const piece = availablePieces[pi];
-                let piecePinResult = this.board.tryPieceOnPin(piece, pin);
+        let isSingleOptionAvailable = true;
+        while (isSingleOptionAvailable) {
+            let pinOptions = this._getAvailablePiecesForPins();
+            let singleOptions = this._getSingleOptions(pinOptions);
+            isSingleOptionAvailable = singleOptions.length > 0;
+
+            if (isSingleOptionAvailable) {
+                this._putSingleOptions(singleOptions)
+                this.board.print();
             }
         }
         // +for each free pin try to put same colored pieces
@@ -47,6 +44,44 @@ class Game {
         // put piece on first, re-evaluate
         // continue until not possible move or win
     }
-}
 
-export default Game
+    _getAvailablePiecesForPins() {
+        let freePins = this.board.getFreePins();
+        let pinOptions = [];
+        for (let i = 0; i < freePins.length; i++) {
+            pinOptions[i] = [];
+            let pin = freePins[i];
+            let availablePieces = this._pieces.filter(p => p.color === pin.color);
+            for (let pi = 0; pi < availablePieces.length; pi++) {
+                let piece = availablePieces[pi];
+                let piecePinResult = this.board.tryPieceOnPin(piece, pin);
+                if (piecePinResult.some(p => p)) {
+                    pinOptions[i].push(piecePinResult);
+                }
+            }
+        }
+
+        console.log(pinOptions);
+        return pinOptions;
+    }
+
+    _getSingleOptions(pinOptions) {
+        return pinOptions.filter(o => o.length === 1 && o[0].length === 1);
+    }
+
+    _isSingleOptionAvailable(pinOptions) {
+        return pinOptions.some(o => o.length === 1 && o[0].length === 1);
+    }
+
+    _putSingleOptions(singleOptions) {
+        for (let i = 0; i < singleOptions.length; i++) {
+            let option = singleOptions[i][0][0];
+            this.board.putPinOption(option);
+            this._removePieceById(option.piece.id);
+        }
+    }
+
+    _removePieceById(id) {
+        this._pieces = this._pieces.filter(p => p.id !== id);
+    }
+}
