@@ -10,15 +10,21 @@ let board = new Board(['R6B', 'G3C', 'B2B', 'B1C', 'Y4B', 'Y5C']);
 
 let game = new Game(board);
 game.putPieceOnBoard(piece);
+console.log('Initial board:');
 game.board.print();
+console.log('Pieces:');
 console.log(game.pieces);    
 
 let freePins = board.getFreePins();
+console.log('Pins:');
 console.log(freePins);
 
 game.solve();
 
-console.log(game.pieces);    
+if (game.gameOver) {
+    console.log('GAME OVER!');
+    game.board.print();
+}
 
 // let plan = [['R','RO'],[' ','R'],[' ','RO']];
 // console.table(plan);
