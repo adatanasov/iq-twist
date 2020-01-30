@@ -36,39 +36,43 @@ export class Game {
             }
         }
 
-        if (pinOptions.length > 0) {
-            //console.log(pinOptions);         
+        if (pinOptions.length > 0) {     
             let possibleCases = this._getAllPossibleCases(pinOptions);   
-            console.log(possibleCases); 
+            // console.log(possibleCases); 
             
             if (!Array.isArray(possibleCases[0])) {
-                console.log('single pin with options');
+                // console.log('single pin with options');
                 for (let i = 0; i < possibleCases.length; i++) {
                     let option = possibleCases[i];
-                    let possibleBoard = Object.create(this.board);
+                    let possibleBoard = this.board.clone();
                     let possiblePieces = this.pieces.slice(0);
 
                     if (possibleBoard.canFit(option.plan, option.x, option.y, option.pin)) {
                         possibleBoard.putPinOption(option);
                         possiblePieces = possiblePieces.filter(p => p.id !== option.piece.id);
-                        possibleBoard.print();
+                        // possibleBoard.print();
 
                         if (possiblePieces.length === 0) {
-                            this.pieces = possiblePieces;
-                            this.board = possibleBoard
+                            this.pieces = possiblePieces.slice(0);
+                            this.board = possibleBoard.clone();
                             this.gameOver = true;
                             return;
                         }
 
+                    }
+
+                    // console.log('single pin with options before _canPutRemainingPieces');
+                    if (this._canPutRemainingPieces(possibleBoard, possiblePieces)) {
+                        return;
                     } else {
-                        break;
+                        continue;
                     }
                 }
             } else {            
-                console.log('multiple pins with options');
+                // console.log('multiple pins with options');
                 for (let i = 0; i < possibleCases.length; i++) {
                     let casesToTry = possibleCases[i];
-                    let possibleBoard = Object.create(this.board);
+                    let possibleBoard = this.board.clone();
                     let possiblePieces = this.pieces.slice(0);
 
                     for (let ca = 0; ca < casesToTry.length; ca++) {
@@ -78,8 +82,8 @@ export class Game {
                             possiblePieces = possiblePieces.filter(p => p.id !== option.piece.id);
 
                             if (possiblePieces.length === 0) {
-                                this.pieces = possiblePieces;
-                                this.board = possibleBoard
+                                this.pieces = possiblePieces.slice(0);
+                                this.board = possibleBoard.clone();
                                 this.gameOver = true;
                                 return;
                             }
@@ -90,9 +94,6 @@ export class Game {
                     }
 
                     if (this._canPutRemainingPieces(possibleBoard, possiblePieces)) {
-                        this.pieces = possiblePieces;
-                        this.board = possibleBoard
-                        this.gameOver = true;
                         return;
                     }
                 }
@@ -104,32 +105,44 @@ export class Game {
             return;
         }
 
+        // console.log('no pin options before _canPutRemainingPieces');
         if (this._canPutRemainingPieces(this.board, this.pieces)) {
-            this.gameOver = true;
             return;
         }        
     }
 
     _canPutRemainingPieces(someBoard, somePieces) {
-        let possibleBoard = Object.create(someBoard);
         let possiblePieces = somePieces.slice(0).sort(function (a, b) {
-            return a.area - b.area;
+            return b.area - a.area;
         });
+        // console.log("_canPutRemainingPieces possiblePieces");
+        // console.log(possiblePieces);
 
-        let possibleMoves = this._getPossibleMovesForPiece(possibleBoard, possiblePieces[0]);
+        let possibleMoves = this._getPossibleMovesForPiece(someBoard, possiblePieces[0]);
+        // console.log("possibleMoves");
+        // console.log(possibleMoves);
         for (let i = 0; i < possibleMoves.length; i++) {
             let move = possibleMoves[i];
-            possibleBoard.putPinOption(move);
-            possiblePieces = possiblePieces.filter(p => p.id !== move.piece.id);
+            let newBoard = someBoard.clone();
+            // console.log("newBoard");
+            // console.table(newBoard.state);
+            // console.log("move");
+            // console.log(move);
+            newBoard.putPinOption(move);
+            let newPieces = possiblePieces.slice(0).filter(p => p.id !== move.piece.id);
 
-            if (possiblePieces.length === 0) {
-                this.pieces = possiblePieces;
-                this.board = possibleBoard
+            if (newPieces.length === 0) {
+                this.pieces = newPieces.slice(0);
+                this.board = newBoard.clone()
                 this.gameOver = true;
                 return true;
             }
 
-            this._canPutRemainingPieces(possibleBoard, possiblePieces);
+            if (this._canPutRemainingPieces(newBoard, newPieces)) {
+                return true;
+            } else {
+                continue;
+            }
         }
 
         return false;
@@ -137,11 +150,12 @@ export class Game {
 
     _getPossibleMovesForPiece(someBoard, somePiece) {
         let emptySpaces = this._getEmptySpaces(someBoard);
+        // console.log("_getPossibleMovesForPiece");
         let result = [];
         for (let i = 0; i < emptySpaces.length; i++) {
             let space = emptySpaces[i];
             let pin = new Pin('Z', space[0], space[1]);
-            let piecePinResult = this.board.tryPieceOnPosition(somePiece, pin);
+            let piecePinResult = someBoard.tryPieceOnPosition(somePiece, pin);
             if (piecePinResult.some(p => p)) {
                 for (let res = 0; res < piecePinResult.length; res++) {
                     result.push(piecePinResult[res]);
@@ -154,9 +168,9 @@ export class Game {
 
     _getEmptySpaces(someBoard) {
         let result = [];
-        for (let i = 0; i < someBoard.length; i++) {
-            for (let j = 0; j < someBoard[i].length; j++) {
-                if (someBoard[i][j] === ' ') {
+        for (let i = 0; i < someBoard.state.length; i++) {
+            for (let j = 0; j < someBoard.state[i].length; j++) {
+                if (someBoard.state[i][j] === ' ') {
                     result.push([i, j]);
                 }
             }

@@ -3,7 +3,7 @@ import { PinOption } from "./PinOption.js";
 
 export class Board {
     constructor(pins) {
-        this._state = [
+        this.state = [
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
             [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
@@ -11,20 +11,29 @@ export class Board {
         ];
 
         this._putPins(pins);
-    }    
-
-    get state() {
-        return this._state;
     }
 
     print() {
-        console.table(this._state);
+        console.table(this.state);
+    }
+
+    clone() {
+        let newBoard = new Board([]);
+        //newBoard.state = this.state;
+
+        for (let i = 0; i < this.state.length; i++) {
+            for (let j = 0; j < this.state[i].length; j++) {
+                newBoard.state[i][j] = this.state[i][j];
+            }
+        }
+
+        return newBoard;
     }
 
     putPiece(piece) {
         for (let i = 0; i < piece.position.length; i++) {
             const content = piece.position[i];
-            this._setState(content, this._state);
+            this._setState(content, this.state);
         }
     }
 
@@ -48,12 +57,12 @@ export class Board {
 
         if (this._isPositionEmpty(x, y)) {
             let updatedContent = content.length === 1 ? content + content : content;
-            this._state[x][y] = updatedContent;
+            this.state[x][y] = updatedContent;
             return;
         }
 
         if (this._isPositionPin(x, y) && this._canPutOnPin(content, x, y)) {
-            this._state[x][y] = content + this._state[x][y];
+            this.state[x][y] = content + this.state[x][y];
             return;
         }
 
@@ -62,10 +71,10 @@ export class Board {
 
     getFreePins() {
         let result = [];
-        for (let i = 0; i < this._state.length; i++) {
-            for (let j = 0; j < this._state[i].length; j++) {
-                if (this._isContentPin(this._state[i][j])) {
-                    result.push(new Pin(this._state[i][j], i, j));
+        for (let i = 0; i < this.state.length; i++) {
+            for (let j = 0; j < this.state[i].length; j++) {
+                if (this._isContentPin(this.state[i][j])) {
+                    result.push(new Pin(this.state[i][j], i, j));
                 }
             }
         }
@@ -103,13 +112,15 @@ export class Board {
     }
 
     tryPieceOnPosition(piece, pin) {
+        // console.log("tryPieceOnPosition state");
+        // console.table(this.state);
         let currentPlan = piece.plan; 
         let result = [];     
         for (let po = 0; po < 8; po++) { 
             for (let i = 0; i < currentPlan.length; i++) {
                 for (let j = 0; j < currentPlan[i].length; j++) {
                     const element = currentPlan[i][j];
-                    if (this.canFit(currentPlan, i, j, pin)) {
+                    if (element !== ' ' && this.canFit(currentPlan, i, j, pin)) {
                         let option = new PinOption(piece, currentPlan.slice(0), i, j, pin)
                         result.push(option);
                     }
@@ -210,7 +221,7 @@ export class Board {
     }
 
     _isPositionEmpty(x, y) {
-        return this._state[x][y] === ' ';
+        return this.state[x][y] === ' ';
     }
 
     _isContentEmpty(content) {
@@ -218,7 +229,7 @@ export class Board {
     }
 
     _isPositionPin(x, y) {
-        return this._state[x][y] !== ' ' && this._state[x][y].length === 1;
+        return this.state[x][y] !== ' ' && this.state[x][y].length === 1;
     }
 
     _isContentPin(content) {
@@ -226,7 +237,7 @@ export class Board {
     }
 
     _canPutOnPin(content, x, y) {
-        return content.endsWith('O') && content[0] === this._state[x][y];
+        return content.endsWith('O') && content[0] === this.state[x][y];
     }
 
     _putPins(pins) {
@@ -241,7 +252,7 @@ export class Board {
         const column = content[content.length - 2] - 1;
         const row = this._getRow(content[content.length - 1]);
 
-        this._state[row][column] = color;
+        this.state[row][column] = color;
     }
 
     _getRow(rawRow) {
