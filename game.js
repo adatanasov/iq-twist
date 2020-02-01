@@ -15,6 +15,7 @@ export class Game {
             new Piece('R', 4, 1, [[' ', 'R'], ['R', 'RO'], ['R', ' ']]),
             new Piece('G', 3, 2, [[' ', 'G'], ['GO', 'GO']])
         ];
+        this.logs = 0;
     }
 
     putPieceOnBoard(piece) {
@@ -49,6 +50,9 @@ export class Game {
 
                     if (possibleBoard.canFit(option.plan, option.x, option.y, option.pin)) {
                         possibleBoard.putPinOption(option);
+                        if (!possibleBoard.isStatePossibleForSolving(this.logs < 100)) {
+                            continue;
+                        }
                         possiblePieces = possiblePieces.filter(p => p.id !== option.piece.id);
                         // possibleBoard.print();
 
@@ -79,6 +83,9 @@ export class Game {
                         let option = casesToTry[ca];
                         if (possibleBoard.canFit(option.plan, option.x, option.y, option.pin)) {
                             possibleBoard.putPinOption(option);
+                            if (!possibleBoard.isStatePossibleForSolving(this.logs < 100)) {
+                                break;
+                            }
                             possiblePieces = possiblePieces.filter(p => p.id !== option.piece.id);
 
                             if (possiblePieces.length === 0) {
@@ -129,6 +136,9 @@ export class Game {
             // console.log("move");
             // console.log(move);
             newBoard.putPinOption(move);
+            if (!newBoard.isStatePossibleForSolving(this.logs < 100)) {
+                continue;
+            }
             let newPieces = possiblePieces.slice(0).filter(p => p.id !== move.piece.id);
 
             if (newPieces.length === 0) {
@@ -150,7 +160,11 @@ export class Game {
 
     _getPossibleMovesForPiece(someBoard, somePiece) {
         let emptySpaces = this._getEmptySpaces(someBoard);
-        // console.log("_getPossibleMovesForPiece");
+        // console.log("_getPossibleMovesForPiece:");
+        this.logs += 1;
+        if (this.logs < 100) {
+            // console.table(someBoard.state);
+        }
         let result = [];
         for (let i = 0; i < emptySpaces.length; i++) {
             let space = emptySpaces[i];
@@ -162,6 +176,20 @@ export class Game {
                 }
             }
         }
+
+        result = this._removeDuplicates(result);
+        // console.log("moves:");
+        // console.log(result);
+        return result;
+    }
+
+    _removeDuplicates(pinOptions) {
+        let result = pinOptions.filter((elem, index, self) =>
+            index === self.findIndex((p) => (
+                JSON.stringify(p.plan) === JSON.stringify(elem.plan) 
+                && p.pin.x - p.x === elem.pin.x - elem.x
+                && p.pin.y - p.y === elem.pin.y - elem.y
+        )));
 
         return result;
     }

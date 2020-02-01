@@ -181,6 +181,31 @@ export class Board {
         return true;
     }
 
+    isStatePossibleForSolving(debug) {
+        let minIndex = 0;
+        let maxIndexX = 3;
+        let maxIndexY = 7;
+        for (let i = 0; i < this.state.length; i++) {
+            for (let j = 0; j < this.state[i].length; j++) {
+                if (this.state[i][j].length === 1
+                    && (j - 1 < minIndex || this.state[i][j-1].length > 1)
+                    && (i - 1 < minIndex || this.state[i-1][j].length > 1)
+                    && (j + 1 > maxIndexY || this.state[i][j+1].length > 1)
+                    && (i + 1 > maxIndexX || this.state[i+1][j].length > 1)) {
+                    if (debug === true) {                            
+                        // console.log("not possibe");
+                    }
+                    return false;
+                }
+            }
+        }
+
+        if (debug === true) {                            
+            // console.log("possibe");
+        }
+        return true;
+    }
+
     _rotate(plan) {
         let toRotate = plan.slice(0);
         let result = [];
