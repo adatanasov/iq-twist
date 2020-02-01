@@ -87,6 +87,7 @@ export class Game {
                             possibleBoard.putPinOption(option);
                             if (!possibleBoard.isStatePossibleForSolving(this.logs < 100)) {
                                 // TODO remove all possibleCases which start with the current ones!
+                                this._removeInvalidCases(possibleCases, casesToTry, ca);
                                 break;
                             }
                             possiblePieces = possiblePieces.filter(p => p.id !== option.piece.id);
@@ -119,6 +120,19 @@ export class Game {
         if (this._canPutRemainingPieces(this.board, this.pieces)) {
             return;
         }        
+    }
+
+    _removeInvalidCases(allCases, invalidCase, invalidIndex) {
+        for (let i = 0; i < allCases.length; i++) {
+            let shouldRemove = true;
+            for (let j = 0; j < invalidIndex; j++) {
+                if (!allCases[i][j].equals(invalidCase[j])) {
+                    shouldRemove = false;
+                }
+            }
+
+            allCases.splice(i, 1);
+        }
     }
 
     _canPutRemainingPieces(someBoard, somePieces) {
