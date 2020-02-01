@@ -19,7 +19,6 @@ export class Board {
 
     clone() {
         let newBoard = new Board([]);
-        //newBoard.state = this.state;
 
         for (let i = 0; i < this.state.length; i++) {
             for (let j = 0; j < this.state[i].length; j++) {

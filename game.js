@@ -75,7 +75,9 @@ export class Game {
             } else {            
                 // console.log('multiple pins with options');
                 for (let i = 0; i < possibleCases.length; i++) {
-                    let casesToTry = possibleCases[i];
+                    let casesToTry = possibleCases[i].sort(function (a, b) {
+                        return b.piece.area - a.piece.area;
+                    });
                     let possibleBoard = this.board.clone();
                     let possiblePieces = this.pieces.slice(0);
 
@@ -84,6 +86,7 @@ export class Game {
                         if (possibleBoard.canFit(option.plan, option.x, option.y, option.pin)) {
                             possibleBoard.putPinOption(option);
                             if (!possibleBoard.isStatePossibleForSolving(this.logs < 100)) {
+                                // TODO remove all possibleCases which start with the current ones!
                                 break;
                             }
                             possiblePieces = possiblePieces.filter(p => p.id !== option.piece.id);
