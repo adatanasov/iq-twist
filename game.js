@@ -81,12 +81,12 @@ export class Game {
                     let possibleBoard = this.board.clone();
                     let possiblePieces = this.pieces.slice(0);
 
-                    for (let ca = 0; ca < casesToTry.length; ca++) {
+                    let casesToTryLength = casesToTry.length;
+                    for (let ca = 0; ca < casesToTryLength; ca++) {
                         let option = casesToTry[ca];
                         if (possibleBoard.canFit(option.plan, option.x, option.y, option.pin)) {
                             possibleBoard.putPinOption(option);
                             if (!possibleBoard.isStatePossibleForSolving(this.logs < 100)) {
-                                // TODO remove all possibleCases which start with the current ones!
                                 this._removeInvalidCases(possibleCases, casesToTry, ca);
                                 break;
                             }
@@ -100,6 +100,7 @@ export class Game {
                             }
 
                         } else {
+                            this._removeInvalidCases(possibleCases, casesToTry, ca);
                             break;
                         }
                     }
@@ -131,7 +132,9 @@ export class Game {
                 }
             }
 
-            allCases.splice(i, 1);
+            if (shouldRemove) {
+                allCases.splice(i, 1);
+            }
         }
     }
 

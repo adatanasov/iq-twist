@@ -31,7 +31,7 @@ import { Pin } from './pin.js';
 // let game = new Game(board);
 // game.putPieceOnBoard(piece);
 
-// Game 38 (15,311 ms)|(19,077 - 19,358  ms)
+// Game 38 (15,311 ms)|(19,077 - 19,358  ms)|(12,498 - 12,146 ms)
 let board = new Board(['R2B', 'Y2C']);
 let game = new Game(board);
 
