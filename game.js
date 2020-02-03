@@ -33,7 +33,7 @@ export class Game {
 
             if (isSingleOptionAvailable) {
                 this._putSingleOptions(singleOptions)
-                this.board.print();
+                //this.board.print();
             }
         }
 

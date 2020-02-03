@@ -17,6 +17,45 @@ export class Board {
         console.table(this.state);
     }
 
+    draw(id) {
+        let canvas = document.getElementById(id);
+
+        for (let i = 0; i < this.state.length; i++) {
+            for (let j = 0; j < this.state[i].length; j++) {
+                if (this.state[i][j] !== ' ') {
+                    this._drawCircle(canvas, (j * 50) + 25, (i * 50) + 25, this.state[i][j]);
+                }
+            }
+        }
+    }
+
+    _drawCircle(canvas, x, y, content) {
+        let ctx = canvas.getContext("2d");
+        let radius = content.length === 1 ? 10 : 25;
+        let color = '';
+        switch (content[0]) {
+            case 'B':
+                color = 'blue';
+                break;
+            case 'R':
+                color = 'red';
+                break;
+            case 'Y':
+                color = 'yellow';
+                break;
+            case 'G':
+                color = 'green';
+                break;
+            default:
+                color = 'brown';
+                break;
+        }
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+    }
+
     clone() {
         let newBoard = new Board([]);
 
