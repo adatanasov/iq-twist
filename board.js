@@ -36,16 +36,16 @@ export class Board {
         let color = '';
         switch (content[0]) {
             case 'B':
-                color = 'blue';
+                color = '#3982E9';
                 break;
             case 'R':
-                color = 'red';
+                color = '#E52645';
                 break;
             case 'Y':
-                color = 'yellow';
+                color = '#FEE74B';
                 break;
             case 'G':
-                color = 'green';
+                color = '#8ECD27';
                 break;
             case 'Z':
                 color = 'grey';
