@@ -22,16 +22,17 @@ export class Board {
 
         for (let i = 0; i < this.state.length; i++) {
             for (let j = 0; j < this.state[i].length; j++) {
+                this._drawCircle(canvas, (j * 50) + 25, (i * 50) + 25, 10, "Z");
                 if (this.state[i][j] !== ' ') {
-                    this._drawCircle(canvas, (j * 50) + 25, (i * 50) + 25, this.state[i][j]);
+                    this._drawCircle(canvas, (j * 50) + 25, (i * 50) + 25, 0, this.state[i][j]);
                 }
             }
         }
     }
 
-    _drawCircle(canvas, x, y, content) {
+    _drawCircle(canvas, x, y, radius, content) {
         let ctx = canvas.getContext("2d");
-        let radius = content.length === 1 ? 10 : 25;
+        let realRadius = radius > 0 ? radius : content.length === 1 ? 13 : 25;
         let color = '';
         switch (content[0]) {
             case 'B':
@@ -46,14 +47,31 @@ export class Board {
             case 'G':
                 color = 'green';
                 break;
+            case 'Z':
+                color = 'grey';
+                break;
             default:
                 color = 'brown';
                 break;
         }
         ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI);
+        ctx.arc(x, y, realRadius, 0, 2 * Math.PI);
         ctx.fillStyle = color;
         ctx.fill();
+
+        if (content.indexOf('O') > 0) {
+            ctx.beginPath();
+            ctx.arc(x, y, 15, 0, 2 * Math.PI);
+            ctx.fillStyle = 'black';
+            ctx.fill();
+
+            if (content.length === 3) {
+                ctx.beginPath();
+                ctx.arc(x, y, 12, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+        }
     }
 
     clone() {
